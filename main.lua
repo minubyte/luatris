@@ -1,6 +1,6 @@
-require "mino"
-require "board"
-require "utils"
+require "scripts.mino"
+require "scripts.board"
+require "scripts.utils"
 
 function love.load()
     screenW, screenH = love.graphics.getDimensions()
@@ -94,6 +94,14 @@ function love.draw()
             if dot ~= 0 then
                 love.graphics.setColor({1, 1, 1, 0.1}) 
                 love.graphics.rectangle("fill", (x+shadowMino.x)*dotSize, (y+shadowMino.y)*dotSize, dotSize, dotSize)
+            end
+        end
+    end
+    for y, row in ipairs(minoShapes[board.next[1]]) do
+        for x, dot in ipairs(row) do
+            if dot ~= 0 then
+                love.graphics.setColor({1, 0.1, 0.2, 0.5}) 
+                love.graphics.rectangle("fill", (x+math.floor(10/2-#minoShapes[board.next[1]]/2))*dotSize, (y)*dotSize, dotSize, dotSize)
             end
         end
     end
@@ -195,7 +203,7 @@ function love.keypressed(key)
             if holdMinoName ~= nil then
                 currentMino:set(holdMinoName)
             else
-                currentMino:set(table.remove(board.next, 1))
+                currentMino:set(board:getNext())
             end
         end
         
@@ -221,7 +229,11 @@ function love.keypressed(key)
             end
         end
         board:place(currentMino)
-        currentMino:set(table.remove(board.next, 1))
+        currentMino:set(board:getNext())
+    end
+    if key == "r" then
+        board:set()
+        currentMino:set(board:getNext())
     end
 end
 

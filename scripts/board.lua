@@ -1,4 +1,4 @@
-require "mino"
+require "scripts.mino"
 
 board = {}
 function board:set()
@@ -12,6 +12,7 @@ function board:set()
     self.next = {}
     self.hold = nil
     self.canHold = true
+    self.blockOut = false
     self:updateNext()
 end
 
@@ -69,3 +70,23 @@ function board:checkLineClear()
     end
 end
 
+function board:checkBlockOut(nextShape)
+    for y, row in ipairs(nextShape) do 
+        for x, dot in ipairs(row) do
+            if dot ~= 0 then
+                if board.grid[y][x+math.floor(10/2-#nextShape/2)] ~= 0 then
+                    self.blockOut = true
+                    return true
+                end
+            end
+        end
+    end
+    self.blockOut = false
+    return false
+end
+
+function board:getNext()
+    local next = table.remove(board.next, 1) 
+    self:checkBlockOut((minoShapes[next]))
+    return next
+end

@@ -1,4 +1,4 @@
-require "utils"
+require "scripts.utils"
 
 minoShapes = {
     ["I"] = {
@@ -83,7 +83,7 @@ function currentMino:set(name)
     self.roatationState = 0
 end
 
-function isColliding(mino, board) 
+function checkCollision(mino, board) 
     for y, row in ipairs(mino.shape) do
         for x, dot in ipairs(row) do
             if dot ~= 0 then
@@ -109,7 +109,7 @@ function currentMino:move(board, mx, my)
     local tempMino = copy(self)
     tempMino.x = tempMino.x+mx
     tempMino.y = tempMino.y+my
-    if isColliding(tempMino, board) then
+    if checkCollision(tempMino, board) then
         return false
     else
         self.x = self.x+mx
