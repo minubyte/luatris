@@ -12,8 +12,24 @@ function board:set()
     self.next = {}
     self.hold = nil
     self.canHold = true
-    self.blockOut = false
+    self.topOut = false
+    self.height = #self.grid
     self:updateNext()
+end
+
+function board:checkHeight()
+    self.height = #self.grid
+    for y, row in ipairs(board.grid) do
+        local fullLine = true
+        for x, dot in ipairs(row) do
+            if dot ~= 0 then
+                if y < self.height then
+                    self.height = y
+                    break
+                end
+            end
+        end
+    end
 end
 
 function board:updateNext()
@@ -35,7 +51,10 @@ end
 function board:place(mino)
     for y, row in ipairs(mino.shape) do 
         for x, dot in ipairs(row) do
-            if dot ~= 0 then
+            if dot ~= 0 then 
+                if y+mino.y <= 1 then
+                    self.topOut = true
+                end
                 if y+mino.y < 1 then
                     return false
                 else
@@ -45,6 +64,7 @@ function board:place(mino)
         end
     end
     self:checkLineClear()
+    self:checkHeight()
     self:updateNext()
     self.canHold = true
     return true
@@ -75,13 +95,13 @@ function board:checkBlockOut(nextShape)
         for x, dot in ipairs(row) do
             if dot ~= 0 then
                 if board.grid[y][x+math.floor(10/2-#nextShape/2)] ~= 0 then
-                    self.blockOut = true
+                    self.topOut = true
                     return true
                 end
             end
         end
     end
-    self.blockOut = false
+    -- self.topOut = false
     return false
 end
 

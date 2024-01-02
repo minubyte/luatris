@@ -24,10 +24,12 @@ function love.load()
 
     board:set()
     currentMino:set(table.remove(board.next, 1))
+
+    camOffset = {screenW/2-11*dotSize/2, screenH/2-26*dotSize/2}
 end
 
 function love.draw()
-    love.graphics.translate(screenW/2-11*dotSize/2, screenH/2-26*dotSize/2)
+    love.graphics.translate(camOffset[1], camOffset[2])
     love.graphics.setBackgroundColor(hexToRGB("#2d333bff"))
     for y=1, 23 do
         for x=1, 10 do
@@ -85,7 +87,7 @@ function love.draw()
     end
     local shadowMino = copy(currentMino)
     for i=1, 23 do
-        if not shadowMino:move(board.grid, 0, 1) then
+        if not shadowMino:move(board, 0, 1) then
             break 
         end
     end
@@ -97,11 +99,13 @@ function love.draw()
             end
         end
     end
-    for y, row in ipairs(minoShapes[board.next[1]]) do
-        for x, dot in ipairs(row) do
-            if dot ~= 0 then
-                love.graphics.setColor({1, 0.1, 0.2, 0.5}) 
-                love.graphics.rectangle("fill", (x+math.floor(10/2-#minoShapes[board.next[1]]/2))*dotSize, (y)*dotSize, dotSize, dotSize)
+    if board.height <= 6 then
+        for y, row in ipairs(minoShapes[board.next[1]]) do
+            for x, dot in ipairs(row) do
+                if dot ~= 0 then
+                    love.graphics.setColor({1, 0.1, 0.2, 0.5}) 
+                    love.graphics.rectangle("fill", (x+math.floor(10/2-#minoShapes[board.next[1]]/2))*dotSize, (y)*dotSize, dotSize, dotSize)
+                end
             end
         end
     end
@@ -113,6 +117,12 @@ function love.draw()
             end
         end
     end
+
+    love.graphics.translate(-camOffset[1], -camOffset[2])
+    -- GUI
+    love.graphics.setColor(1, 1, 1, 1)
+    -- love.graphics.print(tostring(currentMino.lockDelay))
+    -- love.graphics.print(tostring(board.height), 20, 20, 0, 2)
 end
 
 function love.update(dt)
@@ -120,7 +130,20 @@ function love.update(dt)
     gravityTimer = gravityTimer+gravity*dt
     if gravityTimer >= 1 then
         gravityTimer = 0
-        currentMino:move(board.grid, 0, 1)
+        currentMino:move(board, 0, 1)
+    end
+
+    if currentMino:onGround(board) then
+        currentMino.lockDelay = currentMino.lockDelay+dt
+        if currentMino.lockDelay >= 60 then
+            board:place(currentMino)
+            currentMino:set(board:getNext())
+        end
+    end
+    
+    if board.topOut then
+        board:set()
+        currentMino:set(board:getNext())
     end
 
     local dir = 0
@@ -137,7 +160,7 @@ function love.update(dt)
         if timers.das <= 0 then
             if controls.arr <= 0 then
                 for i=1, 10 do
-                    if not currentMino:move(board.grid, dir, 0) then
+                    if not currentMino:move(board, dir, 0) then
                         break 
                     end
                 end
@@ -145,7 +168,7 @@ function love.update(dt)
                 if timers.arr > 0 then
                     for i=1, 10 do 
                         timers.arr = timers.arr-controls.arr
-                        if not currentMino:move(board.grid, dir, 0) then
+                        if not currentMino:move(board, dir, 0) then
                             break 
                         end
                         if timers.arr <= 0 then
@@ -164,7 +187,7 @@ function love.update(dt)
         if timers.sdas <= 0 then
             if controls.sarr <= 0 then
                 for i=1, 20 do
-                    if not currentMino:move(board.grid, 0, 1) then
+                    if not currentMino:move(board, 0, 1) then
                         break 
                     end
                 end
@@ -172,7 +195,7 @@ function love.update(dt)
                 if timers.sarr > 0 then
                     for i=1, 20 do 
                         timers.sarr = timers.sarr-controls.sarr
-                        if not currentMino:move(board.grid, 0, 1) then
+                        if not currentMino:move(board, 0, 1) then
                             break 
                         end
                         if timers.sarr <= 0 then
@@ -188,12 +211,12 @@ end
 
 function love.keypressed(key)
     if key == "right" then
-        currentMino:move(board.grid, 1, 0)
+        currentMino:move(board, 1, 0)
         timers.das = controls.das
         timers.arr = 0
     end
     if key == "left" then
-        currentMino:move(board.grid, -1, 0)
+        currentMino:move(board, -1, 0)
         timers.das = controls.das
         timers.arr = 0
     end
@@ -209,22 +232,22 @@ function love.keypressed(key)
         
     end
     if key == "up" then
-        currentMino:rotate(board.grid, 1)
+        currentMino:rotate(board, 1)
     end
     if key == "lctrl" then
-        currentMino:rotate(board.grid, 3)
+        currentMino:rotate(board, 3)
     end
     if key == "a" then
-        currentMino:rotate(board.grid, 2)
+        currentMino:rotate(board, 2)
     end
     if key == "down" then
-        currentMino:move(board.grid, 0, 1)
+        currentMino:move(board, 0, 1)
         timers.sdas = controls.sdas
         timers.sarr = 0
     end
     if key == "space" then
         for i=1, 23 do
-            if not currentMino:move(board.grid, 0, 1) then
+            if not currentMino:move(board, 0, 1) then
                 break 
             end
         end

@@ -60,7 +60,11 @@ IKicks = {
     ["23"] = {{0, 0}, {2, 0}, {-1, 0}, {2,1}, {-1,-2}},
     ["32"] = {{0, 0}, {-2, 0}, {1, 0}, {-2,-1}, {1,2}},
     ["30"] = {{0, 0}, {1, 0}, {-2, 0}, {1,-2}, {-2,1}},
-    ["03"] = {{0, 0}, {-1, 0}, {2, 0}, {-1,2}, {2,-1}}
+    ["03"] = {{0, 0}, {-1, 0}, {2, 0}, {-1,2}, {2,-1}},
+    ["02"] = {{0, 0}, {0, 1}, {1, 1}, {-1, 1}, {1, 0}, {-1, 0}},
+    ["20"] = {{0, 0}, {0, -1}, {-1, -1}, {1, -1}, {-1, 0}, {1, 0}},
+    ["13"] = {{0, 0}, {1, 0}, {1, 2}, {1, 1}, {0, 2}, {0, 1}},
+    ["31"] = {{0, 0}, {-1, 0}, {-1, 2}, {-1, 1}, {0, 2}, {0, 1}}
 }
 JLSTZKicks = {
     ["01"] = {{0, 0}, {-1, 0}, {-1, 1}, {0, -2}, {-1, -2}},
@@ -70,7 +74,11 @@ JLSTZKicks = {
     ["23"] = {{0, 0}, {1, 0}, {1, 1}, {0, -2}, {1, -2}},
     ["32"] = {{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}},
     ["30"] = {{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}},
-    ["03"] = {{0, 0}, {1, 0}, {1, 1}, {0, -2}, {1, -2}}
+    ["03"] = {{0, 0}, {1, 0}, {1, 1}, {0, -2}, {1, -2}},
+    ["02"] = {{0, 0}, {0, 1}, {1, 1}, {-1, 1}, {1, 0}, {-1, 0}},
+    ["20"] = {{0, 0}, {0, -1}, {-1, -1}, {1, -1}, {-1, 0}, {1, 0}},
+    ["13"] = {{0, 0}, {1, 0}, {1, 2}, {1, 1}, {0, 2}, {0, 1}},
+    ["31"] = {{0, 0}, {-1, 0}, {-1, 2}, {-1, 1}, {0, 2}, {0, 1}}
 }
 
 function currentMino:set(name)
@@ -81,9 +89,11 @@ function currentMino:set(name)
     self.y = 0
     self.x = math.floor(10/2-#self.shape/2)
     self.roatationState = 0
+    self.lockDelay = 0
+    -- self.onGround = false
 end
 
-function checkCollision(mino, board) 
+function checkCollision(board, mino) 
     for y, row in ipairs(mino.shape) do
         for x, dot in ipairs(row) do
             if dot ~= 0 then
@@ -91,7 +101,7 @@ function checkCollision(mino, board)
                     return true
                 else
                     if mino.y+y > 1 then
-                        if board[mino.y+y][mino.x+x] ~= 0 then
+                        if board.grid[mino.y+y][mino.x+x] ~= 0 then
                             return true
                         end
                     end
@@ -109,16 +119,26 @@ function currentMino:move(board, mx, my)
     local tempMino = copy(self)
     tempMino.x = tempMino.x+mx
     tempMino.y = tempMino.y+my
-    if checkCollision(tempMino, board) then
+    if checkCollision(board, tempMino) then
         return false
     else
+        self.lockDelay = 0
         self.x = self.x+mx
         self.y = self.y+my
         return true
     end
 end
 
+function currentMino:onGround(board)
+    local tempMino = copy(self)
+    tempMino.y = tempMino.y+1
+    if checkCollision(board, tempMino) then
+        return true
+    end
+end
+
 function currentMino:rotate(board, dir)
+    self.lockDelay = 0
     local tempRotationState = self.roatationState
     local tempWallKick = {}
     
@@ -130,21 +150,16 @@ function currentMino:rotate(board, dir)
     elseif tempRotationState < 0 then
         tempRotationState = tempRotationState+4
     end
-    
-    if dir == 2 then
-        wallKick = {{0, 0}}
+    if self.name == "I" then
+        wallKick = IKicks[tostring(self.roatationState)..tostring(tempRotationState)]
+    elseif self.name == "O" then
+        return
     else
-        if self.name == "I" then
-            wallKick = IKicks[tostring(self.roatationState)..tostring(tempRotationState)]
-        elseif self.name == "O" then
-            return
-        else
-            wallKick = JLSTZKicks[tostring(self.roatationState)..tostring(tempRotationState)]
-        end
-        
-        if wallKick == nil then
-            return
-        end
+        wallKick = JLSTZKicks[tostring(self.roatationState)..tostring(tempRotationState)]
+    end
+    
+    if wallKick == nil then
+        return
     end
 
 
