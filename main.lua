@@ -25,18 +25,26 @@ function love.load()
     board:set()
     currentMino:set(table.remove(board.next, 1))
 
+    lanes = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
     camOffset = {screenW/2-11*dotSize/2, screenH/2-26*dotSize/2}
 end
 
 function love.draw()
     love.graphics.translate(camOffset[1], camOffset[2])
     love.graphics.setBackgroundColor(hexToRGB("#2d333bff"))
+    
+    for i=1, #lanes do
+        love.graphics.setColor(1, 1, 1, lanes[i]/6)
+        love.graphics.rectangle("fill", i*dotSize, 4*dotSize, dotSize, dotSize*20)
+    end
+
     for y=1, 23 do
         for x=1, 10 do
             local dot = board.grid[y][x]
             if dot ~= 0 then
-                love.graphics.setColor(hexToRGB(minoColors[dot]))
-                love.graphics.rectangle("fill", x*dotSize, y*dotSize, dotSize, dotSize)
+                love.graphics.setColor(1, 1, 1, 1)
+                love.graphics.draw(skinImg, minoImgs[dot], x*dotSize, y*dotSize)
             elseif y > 3 then
                 love.graphics.setColor(1, 1, 1, 0.1)
                 love.graphics.rectangle("line", x*dotSize, y*dotSize, dotSize, dotSize)
@@ -53,11 +61,11 @@ function love.draw()
             if mino == "O" then
                 offset = {0.5, 0}
             end
-            love.graphics.setColor(hexToRGB(minoColors[mino]))
             for y, row in ipairs(minoShape) do
                 for x, dot in ipairs(row) do
                     if dot ~= 0 then
-                        love.graphics.rectangle("fill", (x+12+offset[1])*dotSize, (y+i*3+offset[2])*dotSize, dotSize, dotSize)
+                        love.graphics.setColor(1, 1, 1, 1)
+                        love.graphics.draw(skinImg, minoImgs[mino], (x+12+offset[1])*dotSize, (y+i*3+offset[2])*dotSize)
                     end
                 end
             end
@@ -74,13 +82,12 @@ function love.draw()
         for y, row in ipairs(minoShapes[board.hold]) do
             for x, dot in ipairs(row) do
                 if dot ~= 0 then
+                    love.graphics.setColor(1, 1, 1, 1)
                     if board.canHold then
-                        love.graphics.setColor(hexToRGB(minoColors[board.hold])) 
+                        love.graphics.draw(skinImg, minoImgs[board.hold], (-5+x+offset[1])*dotSize, (3+y+offset[2])*dotSize)
                     else
-                        love.graphics.setColor({1, 1, 1, 0.1}) 
+                        love.graphics.draw(skinImg, minoImgs["X"], (-5+x+offset[1])*dotSize, (3+y+offset[2])*dotSize)
                     end
-
-                    love.graphics.rectangle("fill", (-5+x+offset[1])*dotSize, (3+y+offset[2])*dotSize, dotSize, dotSize)
                 end
             end
         end
@@ -94,11 +101,11 @@ function love.draw()
     for y, row in ipairs(shadowMino.shape) do
         for x, dot in ipairs(row) do
             if dot ~= 0 then
-                love.graphics.setColor({1, 1, 1, 0.1}) 
-                love.graphics.rectangle("fill", (x+shadowMino.x)*dotSize, (y+shadowMino.y)*dotSize, dotSize, dotSize)
+                love.graphics.setColor(1, 1, 1, 0.7)
+                love.graphics.draw(skinImg, minoImgs["X"],(x+shadowMino.x)*dotSize, (y+shadowMino.y)*dotSize)
             end
         end
-    end
+    end 
     if board.height <= 6 then
         for y, row in ipairs(minoShapes[board.next[1]]) do
             for x, dot in ipairs(row) do
@@ -112,8 +119,10 @@ function love.draw()
     for y, row in ipairs(currentMino.shape) do
         for x, dot in ipairs(row) do
             if dot ~= 0 then
-                love.graphics.setColor(hexToRGB(minoColors[currentMino.name])) 
-                love.graphics.rectangle("fill", (x+currentMino.x)*dotSize, (y+currentMino.y)*dotSize, dotSize, dotSize)
+                -- love.graphics.setColor(hexToRGB(minoColors[currentMino.name])) 
+                -- love.graphics.rectangle("fill", (x+currentMino.x)*dotSize, (y+currentMino.y)*dotSize, dotSize, dotSize)
+                love.graphics.setColor(1, 1, 1, 1)
+                love.graphics.draw(skinImg, minoImgs[currentMino.name], (x+currentMino.x)*dotSize, (y+currentMino.y)*dotSize)
             end
         end
     end
@@ -125,8 +134,29 @@ function love.draw()
     -- love.graphics.print(tostring(board.height), 20, 20, 0, 2)
 end
 
+function drop()
+    for y, row in ipairs(currentMino.shape) do
+        for x, dot in ipairs(row) do
+            if dot ~= 0 then
+                if lanes[currentMino.x+x] ~= 1 then
+                    lanes[currentMino.x+x] = 1
+                end
+            end
+        end
+    end
+    board:place(currentMino)
+    currentMino:set(board:getNext())
+end
+
 function love.update(dt)
     dt = dt*60
+
+    for i=1, #lanes do
+        if lanes[i] > 0 then
+            lanes[i] = lanes[i]-dt/10
+        end
+    end
+
     gravityTimer = gravityTimer+gravity*dt
     if gravityTimer >= 1 then
         gravityTimer = 0
@@ -136,8 +166,7 @@ function love.update(dt)
     if currentMino:onGround(board) then
         currentMino.lockDelay = currentMino.lockDelay+dt
         if currentMino.lockDelay >= 60 then
-            board:place(currentMino)
-            currentMino:set(board:getNext())
+            drop()
         end
     end
     
@@ -250,9 +279,8 @@ function love.keypressed(key)
             if not currentMino:move(board, 0, 1) then
                 break 
             end
-        end
-        board:place(currentMino)
-        currentMino:set(board:getNext())
+        end 
+        drop()
     end
     if key == "r" then
         board:set()

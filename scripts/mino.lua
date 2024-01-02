@@ -40,6 +40,14 @@ minoShapes = {
 
 minoNames = {"I", "J", "L", "O", "S", "T", "Z"}
 
+skinImg = love.graphics.newImage("data/skin.png")
+minoImgs = {}
+skinOrder = {"I", "J", "L", "O", "S", "T", "Z", "X"}
+
+for i, name in ipairs(skinOrder) do
+    minoImgs[name] = love.graphics.newQuad((i-1)*24, 0, 24, 24, skinImg:getDimensions())
+end
+
 minoColors = {
     ["I"] = "#42AFE1ff",
     ["J"] = "#1165B5ff",
