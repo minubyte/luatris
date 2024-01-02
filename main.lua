@@ -25,7 +25,9 @@ function love.load()
     board:set()
     currentMino:set(table.remove(board.next, 1))
 
-    lanes = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
+    clearFx = 0
+    clearFxImg = love.graphics.newImage("data/clearFx.png")
 
     camOffset = {screenW/2-11*dotSize/2, screenH/2-26*dotSize/2}
 end
@@ -34,9 +36,13 @@ function love.draw()
     love.graphics.translate(camOffset[1], camOffset[2])
     love.graphics.setBackgroundColor(hexToRGB("#2d333bff"))
     
-    for i=1, #lanes do
-        love.graphics.setColor(1, 1, 1, lanes[i]/6)
-        love.graphics.rectangle("fill", i*dotSize, 4*dotSize, dotSize, dotSize*20)
+    for i=1, #laneFx do
+        love.graphics.setColor(1, 1, 1, laneFx[i][1]/6)
+        love.graphics.rectangle("fill", i*dotSize, 4*dotSize, dotSize, dotSize*(laneFx[i][2]-4))
+    end
+    if clearFx > 0 then
+        love.graphics.setColor(1, 1, 1, clearFx)
+        love.graphics.draw(clearFxImg, dotSize, dotSize*4)
     end
 
     for y=1, 23 do
@@ -135,27 +141,40 @@ function love.draw()
 end
 
 function drop()
-    for y, row in ipairs(currentMino.shape) do
-        for x, dot in ipairs(row) do
-            if dot ~= 0 then
-                if lanes[currentMino.x+x] ~= 1 then
-                    lanes[currentMino.x+x] = 1
+    clearCount = board:place(currentMino)["clearCount"]
+    if clearCount == 0 then
+        for y, row in ipairs(currentMino.shape) do
+            for x, dot in ipairs(row) do
+                if dot ~= 0 then
+                    if laneFx[currentMino.x+x][1] ~= 1 then
+                        laneFx[currentMino.x+x][1] = 1
+                        if laneFx[currentMino.x+x][2] > currentMino.y+y then 
+                            laneFx[currentMino.x+x][2] = currentMino.y+y
+                        end
+                    end
                 end
             end
         end
+    else
+        clearFx = 1
     end
-    board:place(currentMino)
     currentMino:set(board:getNext())
 end
 
 function love.update(dt)
     dt = dt*60
 
-    for i=1, #lanes do
-        if lanes[i] > 0 then
-            lanes[i] = lanes[i]-dt/10
+    for i=1, #laneFx do
+        if laneFx[i][1] > 0 then
+            laneFx[i][1] = laneFx[i][1]-dt/10
+        else
+            laneFx[i][2] = #board.grid
         end
     end
+    if clearFx > 0 then
+        clearFx = clearFx-dt/20
+    end
+
 
     gravityTimer = gravityTimer+gravity*dt
     if gravityTimer >= 1 then

@@ -63,14 +63,18 @@ function board:place(mino)
             end
         end
     end
-    self:checkLineClear()
+    local clearCount = self:checkLineClear()
     self:checkHeight()
     self:updateNext()
     self.canHold = true
-    return true
+    return {
+        ["placed"] = true,
+        ["clearCount"] = clearCount
+    }
 end
 
 function board:checkLineClear()
+    local clearCount = 0
     for y, row in ipairs(board.grid) do
         local fullLine = true
         for x, dot in ipairs(row) do
@@ -86,8 +90,10 @@ function board:checkLineClear()
                 line[x] = 0
             end 
             table.insert(board.grid, 1, line)
+            clearCount = clearCount+1
         end
     end
+    return clearCount
 end
 
 function board:checkBlockOut(nextShape)
