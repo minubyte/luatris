@@ -1,5 +1,9 @@
 screenW, screenH = love.graphics.getDimensions()
 
+-- function love.resize(w, h)
+--     screenW, screenH = w, h
+-- end
+
 function copy(obj)
     if type(obj) ~= 'table' then return obj end
     local res = {}
@@ -56,12 +60,6 @@ end
 fontN = love.graphics.newFont("data/Galmuri9.ttf", 64)
 fontNHeight = fontN:getHeight()
 fontB = love.graphics.newFont("data/Galmuri11-Bold.ttf", 128)
-function drawText(font, text, x, y, r, ox, oy)
-    ox = ox or 0
-    oy = oy or 0
-    love.graphics.setFont(font)
-    love.graphics.print(text, x, y, r, ox, oy)
-end
 
 function AABB(x1, y1, w1, h1, x2, y2, w2, h2)
     return x1 < x2+w2 and
@@ -76,4 +74,4 @@ function easeOutExpo(x)
     else
         return 1-(2^(-10*x))
     end
-end    
+end

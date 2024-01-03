@@ -40,6 +40,7 @@ function game.load(sceneLoader)
 end
 
 function game.draw()
+    -- camOffset = {screenW/2-11*dotSize/2, screenH/2-26*dotSize/2}
     love.graphics.translate(camOffset[1], camOffset[2])
     love.graphics.setBackgroundColor(hexToRGB("#2d333bff"))
     
@@ -151,7 +152,7 @@ function game.draw()
         text = "GO!"
     end
     love.graphics.setColor(1, 1, 1, countDownAnim)
-    love.graphics.print(tostring(text), (screenW+dotSize-fontN:getWidth(tostring(text)))/2, screenH/2-dotSize*2)
+    love.graphics.print(tostring(text), (screenW+dotSize-fontN:getWidth(tostring(text)))/2, screenH/2-dotSize*2+countDownAnim*10)
 
     love.graphics.setColor(1, 1, 1, 0.3)
     love.graphics.setFont(fontN)
@@ -181,19 +182,19 @@ function drop()
 end
 
 function game.update(dt)
-    countDownAnim = countDownAnim-countDownAnim/15*dt
+    countDownAnim = countDownAnim-countDownAnim/10*dt
     if not started then
         if sceneLoader.animationType == "off" then 
             countDownTimer = countDownTimer-dt
             if countDownTimer <= 0 then
                 countDown = countDown-1
-                countDownTimer = 60+1
+                countDownTimer = 30
                 countDownAnim = 1
             end
             if countDown <= 0 then
                 if not started then 
                     started = true
-                    currentMino:set(table.remove(board.next, 1))
+                    currentMino:set(board:getNext())
                     countDown = -1
                 end
             end
@@ -302,6 +303,7 @@ function game.keypressed(key)
                 else
                     currentMino:set(board:getNext())
                 end
+                board:updateNext()
             end
             
         end

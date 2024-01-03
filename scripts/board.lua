@@ -34,10 +34,10 @@ function board:checkHeight()
 end
 
 function board:updateNext()
-    if #self.next <= 5 then
+    if #self.next <= 7 then
         local shuffled = shuffle(minoNames)
-        for i=1, 7 do
-            table.insert(board.next, shuffled[i])
+        for i, name in ipairs(shuffled) do
+            table.insert(board.next, name)
         end
     end
 end
@@ -114,7 +114,7 @@ function board:checkBlockOut(nextShape)
 end
 
 function board:getNext()
-    local next = table.remove(board.next, 1) 
+    local next = table.remove(self.next, 1) 
     self:checkBlockOut((minoShapes[next]))
     return next
 end
