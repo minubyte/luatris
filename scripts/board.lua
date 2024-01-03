@@ -14,6 +14,7 @@ function board:set()
     self.canHold = true
     self.topOut = false
     self.height = #self.grid
+    self.targetLines = 40
     self:updateNext()
 end
 
@@ -93,6 +94,7 @@ function board:checkLineClear()
             clearCount = clearCount+1
         end
     end
+    self.targetLines = self.targetLines-clearCount
     return clearCount
 end
 
