@@ -50,14 +50,15 @@ function game.draw()
         love.graphics.draw(clearFxImg, dotSize, dotSize*4)
     end
 
+    -- grid
     for y=1, 23 do
         for x=1, 10 do
-            local dot = board.grid[y][x]
+            local dot = board.grid[y][x] 
             if dot ~= 0 then
-                love.graphics.setColor(1, 1, 1, 1)
+                love.graphics.setColor(0.9, 0.9, 0.9, 0.9)
                 love.graphics.draw(skinImg, minoImgs[dot], x*dotSize, y*dotSize)
             elseif y > 3 then
-                love.graphics.setColor(1, 1, 1, 0.1)
+                love.graphics.setColor(1, 1, 1, 0.15)
                 love.graphics.rectangle("line", x*dotSize, y*dotSize, dotSize, dotSize)
             end
         end
