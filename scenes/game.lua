@@ -5,6 +5,12 @@ require "scripts.utils"
 game = {}
 
 function game.load(sceneLoader)
+    countDownNum = 3
+    countDown = countDownNum
+    countDownAnim = 0
+    countDownTimer = -30
+    started = false
+    
     dotSize = 24
     gravity = 1/64
     gravityTimer = 0
@@ -15,7 +21,7 @@ function game.load(sceneLoader)
         sdas = 6,
         sarr = 0
     } 
-    timers = {
+    timers = { 
         das = 0,
         arr = 0,
         sdas = 0,
@@ -23,7 +29,6 @@ function game.load(sceneLoader)
     }
 
     board:set()
-    currentMino:set(table.remove(board.next, 1))
 
     laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
     clearFx = 0
@@ -80,64 +85,73 @@ function game.draw()
             end
         end
     end
-    if board.hold ~= nil then
-        local offset = {0, 0} 
-        if board.hold == "I" then
-            offset = {-0.5, -0.5}
-        end
-        if board.hold == "O" then
-            offset = {0.5, 0}
-        end
-        for y, row in ipairs(minoShapes[board.hold]) do
-            for x, dot in ipairs(row) do
-                if dot ~= 0 then
-                    love.graphics.setColor(1, 1, 1, 1)
-                    if board.canHold then
-                        love.graphics.draw(skinImg, minoImgs[board.hold], (-5+x+offset[1])*dotSize, (3+y+offset[2])*dotSize)
-                    else
-                        love.graphics.draw(skinImg, minoImgs["X"], (-5+x+offset[1])*dotSize, (3+y+offset[2])*dotSize)
+    if started then
+        if board.hold ~= nil then
+            local offset = {0, 0} 
+            if board.hold == "I" then
+                offset = {-0.5, -0.5}
+            end
+            if board.hold == "O" then
+                offset = {0.5, 0}
+            end
+            for y, row in ipairs(minoShapes[board.hold]) do
+                for x, dot in ipairs(row) do
+                    if dot ~= 0 then
+                        love.graphics.setColor(1, 1, 1, 1)
+                        if board.canHold then
+                            love.graphics.draw(skinImg, minoImgs[board.hold], (-5+x+offset[1])*dotSize, (3+y+offset[2])*dotSize)
+                        else
+                            love.graphics.draw(skinImg, minoImgs["X"], (-5+x+offset[1])*dotSize, (3+y+offset[2])*dotSize)
+                        end
                     end
                 end
             end
         end
-    end
-    local shadowMino = copy(currentMino)
-    for i=1, 23 do
-        if not shadowMino:move(board, 0, 1) then
-            break 
-        end
-    end 
-    for y, row in ipairs(shadowMino.shape) do
-        for x, dot in ipairs(row) do
-            if dot ~= 0 then
-                love.graphics.setColor(1, 1, 1, 0.7)
-                love.graphics.draw(skinImg, minoImgs["X"],(x+shadowMino.x)*dotSize, (y+shadowMino.y)*dotSize)
+        local shadowMino = copy(currentMino)
+        for i=1, 23 do
+            if not shadowMino:move(board, 0, 1) then
+                break 
             end
-        end
-    end 
-    if board.height <= 6 then
-        for y, row in ipairs(minoShapes[board.next[1]]) do
+        end 
+        for y, row in ipairs(shadowMino.shape) do
             for x, dot in ipairs(row) do
                 if dot ~= 0 then
-                    love.graphics.setColor({1, 0.1, 0.2, 0.5}) 
-                    love.graphics.rectangle("fill", (x+math.floor(10/2-#minoShapes[board.next[1]]/2))*dotSize, (y)*dotSize, dotSize, dotSize)
+                    love.graphics.setColor(1, 1, 1, 0.7)
+                    love.graphics.draw(skinImg, minoImgs["X"],(x+shadowMino.x)*dotSize, (y+shadowMino.y)*dotSize)
+                end
+            end
+        end 
+        if board.height <= 6 then
+            for y, row in ipairs(minoShapes[board.next[1]]) do
+                for x, dot in ipairs(row) do
+                    if dot ~= 0 then
+                        love.graphics.setColor({1, 0.1, 0.2, 0.5}) 
+                        love.graphics.rectangle("fill", (x+math.floor(10/2-#minoShapes[board.next[1]]/2))*dotSize, (y)*dotSize, dotSize, dotSize)
+                    end
                 end
             end
         end
-    end
-    for y, row in ipairs(currentMino.shape) do
-        for x, dot in ipairs(row) do
-            if dot ~= 0 then
-                -- love.graphics.setColor(hexToRGB(minoColors[currentMino.name])) 
-                -- love.graphics.rectangle("fill", (x+currentMino.x)*dotSize, (y+currentMino.y)*dotSize, dotSize, dotSize)
-                love.graphics.setColor(1, 1, 1, 1)
-                love.graphics.draw(skinImg, minoImgs[currentMino.name], (x+currentMino.x)*dotSize, (y+currentMino.y)*dotSize)
+        for y, row in ipairs(currentMino.shape) do
+            for x, dot in ipairs(row) do
+                if dot ~= 0 then
+                    -- love.graphics.setColor(hexToRGB(minoColors[currentMino.name])) 
+                    -- love.graphics.rectangle("fill", (x+currentMino.x)*dotSize, (y+currentMino.y)*dotSize, dotSize, dotSize)
+                    love.graphics.setColor(1, 1, 1, 1)
+                    love.graphics.draw(skinImg, minoImgs[currentMino.name], (x+currentMino.x)*dotSize, (y+currentMino.y)*dotSize)
+                end
             end
         end
     end
 
     -- GUI
     love.graphics.translate(-camOffset[1], -camOffset[2])
+
+    local text = tostring(countDown)
+    if countDown == -1 then
+        text = "GO!"
+    end
+    love.graphics.setColor(1, 1, 1, countDownAnim)
+    love.graphics.print(tostring(text), (screenW+dotSize-fontN:getWidth(tostring(text)))/2, screenH/2-dotSize*2)
 
     love.graphics.setColor(1, 1, 1, 0.3)
     love.graphics.setFont(fontN)
@@ -167,81 +181,98 @@ function drop()
 end
 
 function game.update(dt)
-    for i=1, #laneFx do
-        if laneFx[i][1] > 0 then
-            laneFx[i][1] = laneFx[i][1]-dt/10
-        else
-            laneFx[i][2] = #board.grid
+    countDownAnim = countDownAnim-countDownAnim/15*dt
+    if not started then
+        countDownTimer = countDownTimer+dt
+        if countDownTimer >= 0 then
+            countDown = countDown-1
+            countDownTimer = -60
+            countDownAnim = 1
         end
-    end
-    if clearFx > 0 then
-        clearFx = clearFx-dt/20
-    end
-
-    gravityTimer = gravityTimer+gravity*dt
-    if gravityTimer >= 1 then
-        gravityTimer = 0
-        currentMino:move(board, 0, 1)
-    end
-
-    if currentMino:onGround(board) then
-        currentMino.lockDelay = currentMino.lockDelay+dt
-        if currentMino.lockDelay >= 60 then
-            drop()
+        if countDown <= 0 then
+            if not started then 
+                started = true
+                currentMino:set(table.remove(board.next, 1))
+                countDown = -1
+            end
         end
-    end
-    
-    if board.topOut then
-        board:set()
-        currentMino:set(board:getNext())
-    end
-
-    local dir = 0
-    if love.keyboard.isDown("right") then
-        dir = 1
-    end
-    if love.keyboard.isDown("left") then
-        dir = -1
-    end
-    if dir ~= 0 then
-        if timers.das > 0 then
-            timers.das = timers.das-dt
-        end
-        if timers.das <= 0 then
-            if controls.arr <= 0 then
-                for i=1, 10 do
-                    if not currentMino:move(board, dir, 0) then
-                        break 
-                    end
-                end
+    else
+        for i=1, #laneFx do
+            if laneFx[i][1] > 0 then
+                laneFx[i][1] = laneFx[i][1]-dt/10
             else
-                timers.arr = timers.arr+dt
-                for i=1, 10 do 
-                    if timers.arr >= controls.arr then
-                        timers.arr = timers.arr-controls.arr
-                        currentMino:move(board, dir, 0)
+                laneFx[i][2] = #board.grid
+            end
+        end
+        if clearFx > 0 then
+            clearFx = clearFx-dt/20
+        end
+    
+        gravityTimer = gravityTimer+gravity*dt
+        if gravityTimer >= 1 then
+            gravityTimer = 0
+            currentMino:move(board, 0, 1)
+        end
+    
+        if currentMino:onGround(board) then
+            currentMino.lockDelay = currentMino.lockDelay+dt
+            if currentMino.lockDelay >= 60 then
+                drop()
+            end
+        end
+        
+        if board.topOut then
+            board:set()
+            currentMino:set(board:getNext())
+        end
+    
+        local dir = 0
+        if love.keyboard.isDown("right") then
+            dir = 1
+        end
+        if love.keyboard.isDown("left") then
+            dir = -1
+        end
+        if dir ~= 0 then
+            if timers.das > 0 then
+                timers.das = timers.das-dt
+            end
+            if timers.das <= 0 then
+                if controls.arr <= 0 then
+                    for i=1, 10 do
+                        if not currentMino:move(board, dir, 0) then
+                            break 
+                        end
+                    end
+                else
+                    timers.arr = timers.arr+dt
+                    for i=1, 10 do 
+                        if timers.arr >= controls.arr then
+                            timers.arr = timers.arr-controls.arr
+                            currentMino:move(board, dir, 0)
+                        end
                     end
                 end
             end
         end
-    end
-    if love.keyboard.isDown("down") then
-        if timers.sdas > 0 then
-            timers.sdas = timers.sdas-dt
-        end
-        if timers.sdas <= 0 then
-            if controls.sarr <= 0 then
-                for i=1, 20 do
-                    if not currentMino:move(board, 0, 1) then
-                        break 
+        if love.keyboard.isDown("down") then
+            if timers.sdas > 0 then
+                timers.sdas = timers.sdas-dt
+            end
+            if timers.sdas <= 0 then
+                if controls.sarr <= 0 then
+                    for i=1, 20 do
+                        if not currentMino:move(board, 0, 1) then
+                            break 
+                        end
                     end
-                end
-            else
-                timers.sarr = timers.sarr+dt
-                for i=1, 10 do 
-                    if timers.sarr >= controls.sarr then
-                        timers.sarr = timers.sarr-controls.sarr
-                        currentMino:move(board, 0, 1)
+                else
+                    timers.sarr = timers.sarr+dt
+                    for i=1, 10 do 
+                        if timers.sarr >= controls.sarr then
+                            timers.sarr = timers.sarr-controls.sarr
+                            currentMino:move(board, 0, 1)
+                        end
                     end
                 end
             end
@@ -250,50 +281,57 @@ function game.update(dt)
 end
 
 function game.keypressed(key)
-    if key == "right" then
-        currentMino:move(board, 1, 0)
-        timers.das = controls.das
-        timers.arr = 0
-    end
-    if key == "left" then
-        currentMino:move(board, -1, 0)
-        timers.das = controls.das
-        timers.arr = 0
-    end
-    if key == "lshift" then
-        if board.canHold then
-            holdMinoName = board:swapHold(currentMino.name)
-            if holdMinoName ~= nil then
-                currentMino:set(holdMinoName)
-            else
-                currentMino:set(board:getNext())
-            end
+    if started then
+        if key == "right" then
+            currentMino:move(board, 1, 0)
+            timers.das = controls.das
+            timers.arr = 0
         end
-        
-    end
-    if key == "up" then
-        currentMino:rotate(board, 1)
-    end
-    if key == "lctrl" then
-        currentMino:rotate(board, 3)
-    end
-    if key == "a" then
-        currentMino:rotate(board, 2)
-    end
-    if key == "down" then
-        currentMino:move(board, 0, 1)
-        timers.sdas = controls.sdas
-        timers.sarr = 0
-    end
-    if key == "space" then
-        for i=1, 23 do
-            if not currentMino:move(board, 0, 1) then
-                break 
+        if key == "left" then
+            currentMino:move(board, -1, 0)
+            timers.das = controls.das
+            timers.arr = 0
+        end
+        if key == "lshift" then
+            if board.canHold then
+                holdMinoName = board:swapHold(currentMino.name)
+                if holdMinoName ~= nil then
+                    currentMino:set(holdMinoName)
+                else
+                    currentMino:set(board:getNext())
+                end
             end
-        end 
-        drop()
+            
+        end
+        if key == "up" then
+            currentMino:rotate(board, 1)
+        end
+        if key == "lctrl" then
+            currentMino:rotate(board, 3)
+        end
+        if key == "a" then
+            currentMino:rotate(board, 2)
+        end
+        if key == "down" then
+            currentMino:move(board, 0, 1)
+            timers.sdas = controls.sdas
+            timers.sarr = 0
+        end
+        if key == "space" then
+            for i=1, 23 do
+                if not currentMino:move(board, 0, 1) then
+                    break 
+                end
+            end 
+            drop()
+        end
     end
     if key == "r" then
+        countDown = countDownNum
+        countDownTimer = 0
+        countDownAnim = 1
+        started = false
+
         board:set()
         currentMino:set(board:getNext())
     end
