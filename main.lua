@@ -58,6 +58,9 @@ function love.update(dt)
         -- sceneLoader.animation = sceneLoader.animation-sceneLoader.animation/5*dt
         sceneLoader.animationTimer = sceneLoader.animationTimer-dt
         sceneLoader.animation = easeOutExpo(sceneLoader.animationTimer/sceneLoader.animationTime)*screenW
+        if sceneLoader.animationTimer <= 0 then
+            sceneLoader.animationType = "off"
+        end
     end
     currentScene.update(dt)
 end

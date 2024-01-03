@@ -5,10 +5,10 @@ require "scripts.utils"
 game = {}
 
 function game.load(sceneLoader)
-    countDownNum = 3
+    countDownNum = 2+1
     countDown = countDownNum
     countDownAnim = 0
-    countDownTimer = -30
+    countDownTimer = 0
     started = false
     
     dotSize = 24
@@ -183,17 +183,19 @@ end
 function game.update(dt)
     countDownAnim = countDownAnim-countDownAnim/15*dt
     if not started then
-        countDownTimer = countDownTimer+dt
-        if countDownTimer >= 0 then
-            countDown = countDown-1
-            countDownTimer = -60
-            countDownAnim = 1
-        end
-        if countDown <= 0 then
-            if not started then 
-                started = true
-                currentMino:set(table.remove(board.next, 1))
-                countDown = -1
+        if sceneLoader.animationType == "off" then 
+            countDownTimer = countDownTimer-dt
+            if countDownTimer <= 0 then
+                countDown = countDown-1
+                countDownTimer = 60+1
+                countDownAnim = 1
+            end
+            if countDown <= 0 then
+                if not started then 
+                    started = true
+                    currentMino:set(table.remove(board.next, 1))
+                    countDown = -1
+                end
             end
         end
     else
@@ -331,7 +333,8 @@ function game.keypressed(key)
         countDownTimer = 0
         countDownAnim = 1
         started = false
-
+        laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
+ 
         board:set()
         currentMino:set(board:getNext())
     end
