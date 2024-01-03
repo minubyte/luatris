@@ -146,11 +146,13 @@ function game.draw()
     if countDown == -1 then
         text = "GO!"
     end
-    love.graphics.setColor(1, 1, 1, countDownAnim)
-    love.graphics.print(tostring(text), (screenW+dotSize-fontN:getWidth(tostring(text)))/2, screenH/2-dotSize*2+countDownAnim*10)
 
-    love.graphics.setColor(1, 1, 1, 0.3)
+    love.graphics.setFont(fontB)
+    love.graphics.setColor(1, 1, 1, countDownAnim)
+    love.graphics.print(tostring(text), (screenW+dotSize-fontB:getWidth(tostring(text)))/2, screenH/2-dotSize*2+countDownAnim*10)
+    
     love.graphics.setFont(fontN)
+    love.graphics.setColor(1, 1, 1, 0.3)
     love.graphics.print(tostring(board.targetLines), (screenW+dotSize-fontN:getWidth(tostring(board.targetLines)))/2, dotSize*8)
     love.graphics.setColor(1, 1, 1, 1)
 end

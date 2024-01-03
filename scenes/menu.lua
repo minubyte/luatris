@@ -3,9 +3,9 @@ menu = {}
 function menu.load(sceneLoader)
     -- value, x, y, hover
     buttons = {
-        {"play (40L)", "game", 100, 300, 0},
+        {"play (40L)", "game", 100, 320, 0},
         {"options", "", 100, 380, 0},
-        {"exit", "", 100, 460, 0}
+        {"exit", "", 100, 440, 0}
     }
     sceneLoader = sceneLoader
 end
@@ -15,7 +15,7 @@ function menu.draw()
 
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.setFont(fontB)
-    love.graphics.print("luatris", 100, 120)
+    love.graphics.print("luatris", 100, 180)
     love.graphics.setFont(fontN)
     -- 버튼어디감
     for i, button in ipairs(buttons) do

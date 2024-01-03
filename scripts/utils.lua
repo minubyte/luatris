@@ -57,9 +57,9 @@ function shuffle(table)
     return shuffled
 end
 
-fontN = love.graphics.newFont("data/Galmuri9.ttf", 64)
+fontN = love.graphics.newFont("data/Galmuri9.ttf", 48)
 fontNHeight = fontN:getHeight()
-fontB = love.graphics.newFont("data/Galmuri11-Bold.ttf", 128)
+fontB = love.graphics.newFont("data/Galmuri11-Bold.ttf", 96)
 
 function AABB(x1, y1, w1, h1, x2, y2, w2, h2)
     return x1 < x2+w2 and
