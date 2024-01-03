@@ -50,11 +50,10 @@ end
 function shuffle(table)
     local shuffled = copy(table)
     for i=#table, 2, -1 do
-        math.randomseed(os.clock()+i)
+        math.randomseed(love.timer.getTime())
         local j = math.random(i)
         shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
-    end
-    return shuffled
+    end    return shuffled
 end
 
 fontN = love.graphics.newFont("data/Galmuri9.ttf", 48)
