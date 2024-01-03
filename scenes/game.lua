@@ -66,6 +66,7 @@ function game.draw()
             end
         end
     end
+    love.graphics.setColor(1, 1, 1, 1)
     for i, mino in ipairs(board.next) do
         if i <= 5 then
             local minoShape = minoShapes[mino]
@@ -79,7 +80,6 @@ function game.draw()
             for y, row in ipairs(minoShape) do
                 for x, dot in ipairs(row) do
                     if dot ~= 0 then
-                        love.graphics.setColor(1, 1, 1, 1)
                         love.graphics.draw(skinImg, minoImgs[mino], (x+12+offset[1])*dotSize, (y+i*3+offset[2])*dotSize)
                     end
                 end
@@ -156,7 +156,7 @@ function game.draw()
 
     love.graphics.setColor(1, 1, 1, 0.3)
     love.graphics.setFont(fontN)
-    love.graphics.print(tostring(board.targetLines), (screenW+dotSize-fontN:getWidth(tostring(board.targetLines)))/2, dotSize*7)
+    love.graphics.print(tostring(board.targetLines), (screenW+dotSize-fontN:getWidth(tostring(board.targetLines)))/2, dotSize*8)
     love.graphics.setColor(1, 1, 1, 1)
 end
 
@@ -226,7 +226,7 @@ function game.update(dt)
         
         if board.topOut then
             board:set()
-            currentMino:set(board:getNext())
+            -- currentMino:set(board:getNext())
         end
     
         local dir = 0
@@ -338,7 +338,7 @@ function game.keypressed(key)
         laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
  
         board:set()
-        currentMino:set(board:getNext())
+        -- currentMino:set(board:getNext()
     end
 end
 

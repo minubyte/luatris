@@ -37,7 +37,7 @@ function board:updateNext()
     if #self.next <= 7 then
         local shuffled = shuffle(minoNames)
         for i, name in ipairs(shuffled) do
-            table.insert(board.next, name)
+            table.insert(self.next, name)
         end
     end
 end

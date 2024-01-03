@@ -170,7 +170,6 @@ function currentMino:rotate(board, dir)
         return
     end
 
-
     for i, kick in ipairs(wallKick) do
         local tempMino = copy(self)
         for i=1, dir do
