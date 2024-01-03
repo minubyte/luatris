@@ -1,5 +1,7 @@
 require "scripts.mino"
 
+clearFxImg = love.graphics.newImage("data/clearFx.png")
+
 board = {}
 function board:set()
     self.grid = {}
@@ -15,12 +17,15 @@ function board:set()
     self.topOut = false
     self.height = #self.grid
     self.targetLines = 40
+    self.laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
+    self.clearFx = 0
+    -- self.clearFxImg = clearFxImg
     self:updateNext()
 end
 
 function board:checkHeight()
     self.height = #self.grid
-    for y, row in ipairs(board.grid) do
+    for y, row in ipairs(self.grid) do
         local fullLine = true
         for x, dot in ipairs(row) do
             if dot ~= 0 then
@@ -59,7 +64,7 @@ function board:place(mino)
                 if y+mino.y < 1 then
                     return false
                 else
-                    board.grid[y+mino.y][x+mino.x] = mino.name
+                    self.grid[y+mino.y][x+mino.x] = mino.name
                 end
             end
         end
@@ -68,15 +73,11 @@ function board:place(mino)
     self:checkHeight()
     self:updateNext()
     self.canHold = true
-    return {
-        ["placed"] = true,
-        ["clearCount"] = clearCount
-    }
 end
 
 function board:checkLineClear()
     local clearCount = 0
-    for y, row in ipairs(board.grid) do
+    for y, row in ipairs(self.grid) do
         local fullLine = true
         for x, dot in ipairs(row) do
             if dot == 0 then
@@ -85,16 +86,32 @@ function board:checkLineClear()
             end
         end
         if fullLine then
-            table.remove(board.grid, y)
+            table.remove(self.grid, y)
             local line = {}
             for x=1, 10 do
                 line[x] = 0
             end 
-            table.insert(board.grid, 1, line)
+            table.insert(self.grid, 1, line)
             clearCount = clearCount+1
         end
     end
     self.targetLines = self.targetLines-clearCount
+    if clearCount == 0 then
+        for y, row in ipairs(currentMino.shape) do
+            for x, dot in ipairs(row) do
+                if dot ~= 0 then
+                    if self.laneFx[currentMino.x+x][1] ~= 1 then
+                        self.laneFx[currentMino.x+x][1] = 1
+                        if self.laneFx[currentMino.x+x][2] > currentMino.y+y then 
+                            self.laneFx[currentMino.x+x][2] = currentMino.y+y
+                        end
+                    end
+                end
+            end
+        end
+    else
+        self.clearFx = 1
+    end
     return clearCount
 end
 
@@ -117,4 +134,22 @@ function board:getNext()
     local next = table.remove(self.next, 1) 
     self:checkBlockOut((minoShapes[next]))
     return next
+end
+
+function board:update(dt)
+    for i=1, #self.laneFx do
+        if self.laneFx[i][1] > 0 then
+            self.laneFx[i][1] = self.laneFx[i][1]-dt/10
+        else
+            self.laneFx[i][2] = #self.grid
+        end
+    end
+    
+    if self.clearFx > 0 then
+        self.clearFx = self.clearFx-dt/20
+    end
+            
+    if self.topOut then
+        self:set()
+    end
 end

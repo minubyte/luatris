@@ -12,8 +12,6 @@ function game.load(sceneLoader)
     started = false
     
     dotSize = 24
-    gravity = 1/64
-    gravityTimer = 0
 
     controls = {
         das = 7,
@@ -29,27 +27,21 @@ function game.load(sceneLoader)
     }
 
     board:set()
-
-    laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
-    clearFx = 0
-    clearFxImg = love.graphics.newImage("data/clearFx.png")
-
-    camOffset = {screenW/2-11*dotSize/2, screenH/2-26*dotSize/2}
-
+    camOffset = {screenW/2-11*dotSize/2, screenH/2-28*dotSize/2}
     sceneLoader = sceneLoader
 end
 
 function game.draw()
-    -- camOffset = {screenW/2-11*dotSize/2, screenH/2-26*dotSize/2}
     love.graphics.translate(camOffset[1], camOffset[2])
     love.graphics.setBackgroundColor(hexToRGB("#2d333bff"))
     
-    for i=1, #laneFx do
-        love.graphics.setColor(1, 1, 1, laneFx[i][1]/6)
-        love.graphics.rectangle("fill", i*dotSize, 4*dotSize, dotSize, dotSize*(laneFx[i][2]-4))
+    -- fx
+    for i=1, #board.laneFx do
+        love.graphics.setColor(1, 1, 1, board.laneFx[i][1]/6)
+        love.graphics.rectangle("fill", i*dotSize, 4*dotSize, dotSize, dotSize*(board.laneFx[i][2]-4))
     end
-    if clearFx > 0 then
-        love.graphics.setColor(1, 1, 1, clearFx)
+    if board.clearFx > 0 then
+        love.graphics.setColor(1, 1, 1, board.clearFx)
         love.graphics.draw(clearFxImg, dotSize, dotSize*4)
     end
 
@@ -66,6 +58,8 @@ function game.draw()
             end
         end
     end
+    
+    -- minos
     love.graphics.setColor(1, 1, 1, 1)
     for i, mino in ipairs(board.next) do
         if i <= 5 then
@@ -86,6 +80,7 @@ function game.draw()
             end
         end
     end
+    
     if started then
         if board.hold ~= nil then
             local offset = {0, 0} 
@@ -160,76 +155,8 @@ function game.draw()
     love.graphics.setColor(1, 1, 1, 1)
 end
 
-function drop()
-    clearCount = board:place(currentMino)["clearCount"]
-    if clearCount == 0 then
-        for y, row in ipairs(currentMino.shape) do
-            for x, dot in ipairs(row) do
-                if dot ~= 0 then
-                    if laneFx[currentMino.x+x][1] ~= 1 then
-                        laneFx[currentMino.x+x][1] = 1
-                        if laneFx[currentMino.x+x][2] > currentMino.y+y then 
-                            laneFx[currentMino.x+x][2] = currentMino.y+y
-                        end
-                    end
-                end
-            end
-        end
-    else
-        clearFx = 1
-    end
-    currentMino:set(board:getNext())
-end
-
-function game.update(dt)
-    countDownAnim = countDownAnim-countDownAnim/10*dt
-    if not started then
-        if sceneLoader.animationType == "off" then 
-            countDownTimer = countDownTimer-dt
-            if countDownTimer <= 0 then
-                countDown = countDown-1
-                countDownTimer = 30
-                countDownAnim = 1
-            end
-            if countDown <= 0 then
-                if not started then 
-                    started = true
-                    currentMino:set(board:getNext())
-                    countDown = -1
-                end
-            end
-        end
-    else
-        for i=1, #laneFx do
-            if laneFx[i][1] > 0 then
-                laneFx[i][1] = laneFx[i][1]-dt/10
-            else
-                laneFx[i][2] = #board.grid
-            end
-        end
-        if clearFx > 0 then
-            clearFx = clearFx-dt/20
-        end
-    
-        gravityTimer = gravityTimer+gravity*dt
-        if gravityTimer >= 1 then
-            gravityTimer = 0
-            currentMino:move(board, 0, 1)
-        end
-    
-        if currentMino:onGround(board) then
-            currentMino.lockDelay = currentMino.lockDelay+dt
-            if currentMino.lockDelay >= 60 then
-                drop()
-            end
-        end
-        
-        if board.topOut then
-            board:set()
-            -- currentMino:set(board:getNext())
-        end
-    
-        local dir = 0
+function move(dt)
+    local dir = 0
         if love.keyboard.isDown("right") then
             dir = 1
         end
@@ -280,6 +207,31 @@ function game.update(dt)
                 end
             end
         end
+end
+
+function game.update(dt)
+    -- countdown
+    countDownAnim = countDownAnim-countDownAnim/10*dt
+    if not started then
+        if sceneLoader.animationType == "off" then 
+            countDownTimer = countDownTimer-dt
+            if countDownTimer <= 0 then
+                countDown = countDown-1
+                countDownTimer = 30
+                countDownAnim = 1
+            end
+            if countDown <= 0 then
+                if not started then 
+                    started = true
+                    currentMino:set(board:getNext())
+                    countDown = -1
+                end
+            end
+        end
+    else
+        board:update(dt)
+        currentMino:update(dt)
+        move(dt)
     end
 end
 
@@ -327,7 +279,8 @@ function game.keypressed(key)
                     break 
                 end
             end 
-            drop()
+            board:place(currentMino)
+            currentMino:set(board:getNext())
         end
     end
     if key == "r" then
@@ -335,7 +288,7 @@ function game.keypressed(key)
         countDownTimer = 0
         countDownAnim = 1
         started = false
-        laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
+        board.laneFx = {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}
  
         board:set()
         -- currentMino:set(board:getNext()

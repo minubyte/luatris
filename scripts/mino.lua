@@ -98,6 +98,8 @@ function currentMino:set(name)
     self.x = math.floor(10/2-#self.shape/2)
     self.roatationState = 0
     self.lockDelay = 0
+    self.gravity = 1/64
+    self.gravityTimer = 0
     -- self.onGround = false
 end
 
@@ -183,4 +185,20 @@ function currentMino:rotate(board, dir)
             break
         end
     end
+end
+
+function currentMino:update(dt)
+    self.gravityTimer = self.gravityTimer+self.gravity*dt
+    if self.gravityTimer >= 1 then
+        self.gravityTimer = 0
+        self:move(board, 0, 1)
+    end
+
+    if self:onGround(board) then
+        self.lockDelay = self.lockDelay+dt
+        if self.lockDelay >= 60 then
+            board:place(self)
+            self:set(board:getNext())
+        end
+    end 
 end
