@@ -5,9 +5,6 @@ require "scripts.utils"
 game = {}
 
 function game.load(sceneLoader)
-    screenW, screenH = love.graphics.getDimensions()
-    love.graphics.setDefaultFilter("nearest", "nearest")
-
     dotSize = 24
     gravity = 1/64
     gravityTimer = 0

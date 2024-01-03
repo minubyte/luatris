@@ -15,7 +15,7 @@ function menu.draw()
 
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.setFont(fontB)
-    love.graphics.print("luatris", 100, 100)
+    love.graphics.print("luatris", 100, 120)
     love.graphics.setFont(fontN)
     -- 버튼어디감
     for i, button in ipairs(buttons) do
