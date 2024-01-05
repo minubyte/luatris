@@ -26,12 +26,19 @@ function game.load(sceneLoader)
         sarr = 0
     }
 
-    board:set()
-    camOffset = {screenW/2-11*dotSize/2, screenH/2-28*dotSize/2}
+    board:set()  
     sceneLoader = sceneLoader
 end
 
 function game.draw()
+    camOffset = {
+        screenW/2/zoom-12*dotSize/2,
+        screenH/2/zoom-28*dotSize/2
+    }
+    -- camOffset = {
+    --     screenW/2-11*dotSize/2,
+    --     screenH/2-28*dotSize/2
+    -- }
     love.graphics.translate(camOffset[1], camOffset[2])
     love.graphics.setBackgroundColor(hexToRGB("#2d333bff"))
     
@@ -148,6 +155,11 @@ function game.draw()
     end
 
     love.graphics.setFont(fontB)
+
+
+function game.resize(w, h)
+    love.graphics.scale(w/screenW)
+end
     love.graphics.setColor(1, 1, 1, countDownAnim)
     love.graphics.print(tostring(text), (screenW+dotSize-fontB:getWidth(tostring(text)))/2, screenH/2-dotSize*2+countDownAnim*10)
     

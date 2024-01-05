@@ -1,4 +1,5 @@
 screenW, screenH = love.graphics.getDimensions()
+zoom = 1
 
 -- function love.resize(w, h)
 --     screenW, screenH = w, h

@@ -35,6 +35,7 @@ function love.load()
 end
 
 function love.draw()
+    love.graphics.scale(zoom, zoom)
     currentScene.draw()
     love.graphics.setColor(0, 0, 0, 1)
     if sceneLoader.animationType == "in" then
@@ -73,4 +74,10 @@ function love.mousepressed(x, y, button)
     if sceneLoader.animationType == "off" then
         currentScene.mousepressed(x, y, button)
     end
+end
+
+function love.resize(w, h)
+    screenW = w
+    screenH = h
+    zoom = w/1280
 end
